@@ -7,12 +7,13 @@ import { dirname, sep } from 'path';
 
 // configuration
 const
-  __dirname = dirname(fileURLToPath( import.meta.url )) + sep,
+  __dirname = dirname(fileURLToPath(import.meta.url)) + sep,
   cfg = {
     port: process.env.PORT || 3000,
     dir: {
-      root:   __dirname,
-      static: __dirname + 'static' + sep
+      root: __dirname,
+      static: __dirname + 'static' + sep,
+      views: __dirname + 'views' + sep
     }
   };
 
@@ -21,11 +22,15 @@ console.dir(cfg, { depth: null, color: true });
 // Express initiation
 const app = express();
 
+// use EJS templates
+app.set('view engine', 'ejs')
+app.set('views', cfg.dir.views)
+
 // do not identify Express
 app.disable('x-powered-by');
 
 // HTTP compression
-app.use( compression() );
+app.use(compression());
 
 // log every request to the terminal
 app.use((req, res, next) => {
@@ -35,25 +40,28 @@ app.use((req, res, next) => {
 
 // home page route
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.render('message', { title: 'Hello World!'});
 });
 
 // another route
-app.get('/hello/', (req, res) => {
-  res.send('Hello again!');
-});
+// app.get('/hello/', (req, res) => {
+//   res.render('message', { title: 'Hello again!' });
+// });
+// hello/ route
+import { helloRouter } from './route/hello.js';
+app.use('/hello', helloRouter)
 
 // serve static assets
-app.use(express.static( cfg.dir.static ));
+app.use(express.static(cfg.dir.static));
 
 // 404 errors
 app.use((req, res) => {
-  res.status(404).send('Not found');
+  res.status(404).render('message', { title: 'Not found' });
 });
 
 // start server
 app.listen(cfg.port, () => {
-  console.log(`Example app listening at http://localhost:${ cfg.port }`);
+  console.log(`Example app listening at http://localhost:${cfg.port}`);
 });
 
 // export defaults
